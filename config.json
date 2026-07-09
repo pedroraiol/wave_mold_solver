@@ -1,0 +1,10 @@
+{
+  "method": "TMM",
+  "wavelength_nm": 1550,
+  "polarization": "TE",
+  "layers": [
+    {"n": 1.44, "thickness_nm": null},
+    {"n": 3.47, "thickness_nm": 220},
+    {"n": 1.44, "thickness_nm": null}
+  ]
+}
