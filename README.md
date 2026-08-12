@@ -18,6 +18,7 @@ core/
   models.py          # dataclasses: Layer, Problem, ModeResult, FieldProfile
   materials.py        # relações físicas (kx, kappa, fatores de acoplamento TE/TM)
   postprocess.py      # reconstrução do perfil de campo e geração dos gráficos
+  dispersion.py       # varredura em comprimento de onda (neff vs wavelength por modo)
 solvers/
   tmm.py             # implementação do Transfer Matrix Method
   fem.py             # implementação do método de elementos finitos (1D)
@@ -63,6 +64,26 @@ A saída lista os modos guiados encontrados:
 Modo 0: neff = 3.176543, beta = 1.287654e+07 rad/m
 Perfil de campo salvo em: outputs/modes_TE_1550nm.png
 ```
+
+### Varredura de dispersão
+
+Passando `--sweep-start`/`--sweep-stop` (nm), o CLI roda o solver escolhido
+em vários pontos de comprimento de onda (além da análise normal no
+`wavelength_nm` do config) e plota `neff` vs comprimento de onda por modo:
+
+```bash
+python main.py --method TMM --sweep-start 1500 --sweep-stop 1600 --sweep-points 21
+```
+
+Gera `outputs/dispersion_TE_TMM.png`. Um modo cuja curva atinge o corte
+dentro do range simplesmente para de aparecer a partir dali — não é um bug,
+é o comportamento físico esperado. `--sweep-points` (padrão 21) controla a
+resolução da varredura; os dois limites precisam ser passados juntos. O modo
+interativo não tem prompts de varredura — só via CLI.
+
+No FEM (autovalor denso), cada ponto da varredura custa o mesmo que uma
+solução normal (~segundos, ver seção de Testes) — uma varredura de 21 pontos
+pode levar 1-2 minutos.
 
 ## Testes
 

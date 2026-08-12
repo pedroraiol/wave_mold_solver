@@ -99,3 +99,29 @@ def save_mode_plot(problem: Problem, results: list[ModeResult], out_dir: str = "
     fig.savefig(filename, dpi=150)
     plt.close(fig)
     return [filename]
+
+
+def save_dispersion_plot(
+    problem: Problem, modes_by_index: dict[int, list[tuple[float, float]]], out_dir: str = "outputs"
+) -> Path:
+    out_path = Path(out_dir)
+    out_path.mkdir(parents=True, exist_ok=True)
+
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+
+    for mode_index in sorted(modes_by_index):
+        points = sorted(modes_by_index[mode_index])
+        wavelengths_nm = [p[0] for p in points]
+        neffs = [p[1] for p in points]
+        ax.plot(wavelengths_nm, neffs, marker="o", markersize=3, label=f"Modo {mode_index}")
+
+    ax.set_xlabel("Comprimento de onda (nm)")
+    ax.set_ylabel("neff")
+    ax.set_title(f"Dispersão modal - {problem.polarization.upper()} ({problem.method.upper()})")
+    ax.legend()
+    fig.tight_layout()
+
+    filename = out_path / f"dispersion_{problem.polarization.upper()}_{problem.method.upper()}.png"
+    fig.savefig(filename, dpi=150)
+    plt.close(fig)
+    return filename

@@ -3,8 +3,11 @@ import argparse
 import json
 import sys
 
+import numpy as np
+
+from core.dispersion import sweep_wavelengths
 from core.models import Layer, Problem
-from core.postprocess import save_mode_plot
+from core.postprocess import save_dispersion_plot, save_mode_plot
 from solvers import BaseSolver
 from solvers.fem import FEMSolver
 from solvers.tmm import TMMSolver
@@ -17,7 +20,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--wavelength", type=float, help="Sobrescreve o comprimento de onda (nm)")
     parser.add_argument("--polarization", choices=["TE", "TM"], help="Sobrescreve a polarização")
     parser.add_argument("--out-dir", default="outputs", help="Diretório de saída para os PNGs de campo")
-    return parser.parse_args()
+    parser.add_argument("--sweep-start", type=float, help="Início da varredura de comprimento de onda (nm)")
+    parser.add_argument("--sweep-stop", type=float, help="Fim da varredura de comprimento de onda (nm)")
+    parser.add_argument(
+        "--sweep-points", type=int, default=21, help="Número de pontos na varredura (padrão: 21)"
+    )
+    args = parser.parse_args()
+
+    if (args.sweep_start is None) != (args.sweep_stop is None):
+        parser.error("--sweep-start e --sweep-stop devem ser passados juntos")
+    if args.sweep_start is not None:
+        if args.sweep_stop <= args.sweep_start:
+            parser.error("--sweep-stop deve ser maior que --sweep-start")
+        if args.sweep_points < 2:
+            parser.error("--sweep-points deve ser >= 2")
+
+    return args
 
 
 def load_problem(path: str) -> Problem:
@@ -93,13 +111,18 @@ def main():
 
     if not results:
         print("Nenhum modo guiado encontrado para essa estrutura.")
-        return
+    else:
+        for result in results:
+            print(f"Modo {result.mode_index}: neff = {result.neff:.6f}, beta = {result.beta:.6e} rad/m")
 
-    for result in results:
-        print(f"Modo {result.mode_index}: neff = {result.neff:.6f}, beta = {result.beta:.6e} rad/m")
+        for path in save_mode_plot(problem, results, out_dir=out_dir):
+            print(f"Perfil de campo salvo em: {path}")
 
-    for path in save_mode_plot(problem, results, out_dir=out_dir):
-        print(f"Perfil de campo salvo em: {path}")
+    if args.sweep_start is not None:
+        wavelengths_nm = np.linspace(args.sweep_start, args.sweep_stop, args.sweep_points)
+        modes_by_index = sweep_wavelengths(problem, solver, wavelengths_nm)
+        path = save_dispersion_plot(problem, modes_by_index, out_dir=out_dir)
+        print(f"Curva de dispersão salva em: {path}")
 
 
 if __name__ == "__main__":
