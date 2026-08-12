@@ -7,7 +7,7 @@ Dado um empilhamento de camadas (índices de refração e espessuras), o solver 
 ## Métodos
 
 - **TMM (Transfer Matrix Method)** — implementado. Resolve a equação característica do guia varrendo o intervalo de índices efetivos possíveis e refinando as raízes com `scipy.optimize.brentq`. Suporta polarizações TE e TM.
-- **FEM** — planejado, ainda não implementado (`solvers/fem.py`).
+- **FEM (elementos finitos, 1D)** — implementado. Discretiza o mesmo empilhamento de camadas com elementos lineares (P1), truncando as claddings semi-infinitas em uma caixa finita (padding proporcional ao comprimento de onda) com condição de contorno de Dirichlet (`ψ=0` nas bordas). Resolve o problema de autovalor generalizado resultante com `scipy.linalg.eigh` e filtra os modos guiados pela mesma janela de índice efetivo usada no TMM. Serve de validação cruzada do TMM e, por não depender de solução analítica por camada, abre caminho para perfis de índice graduais no futuro. Um FEM 2D escalar (para guias rib/strip) fica como trabalho futuro — exigiria um novo modelo de problema (malha 2D).
 
 ## Estrutura do projeto
 
