@@ -20,8 +20,9 @@ core/
   postprocess.py      # reconstrução do perfil de campo e geração dos gráficos
 solvers/
   tmm.py             # implementação do Transfer Matrix Method
-  fem.py             # stub para o método de elementos finitos (futuro)
+  fem.py             # implementação do método de elementos finitos (1D)
 outputs/             # PNGs com os perfis de campo gerados
+tests/               # suíte de testes (pytest)
 ```
 
 ## Configuração
@@ -62,6 +63,23 @@ A saída lista os modos guiados encontrados:
 Modo 0: neff = 3.176543, beta = 1.287654e+07 rad/m
 Perfil de campo salvo em: outputs/modes_TE_1550nm.png
 ```
+
+## Testes
+
+A suíte cobre as funções físicas de `core/materials.py`, os dois solvers
+individualmente (contagem de modos validada analiticamente via V-number de
+slab simétrico, ordenação, bounds, caso sem modo guiado, polarização
+inválida) e uma validação cruzada TMM vs FEM (os dois métodos devem
+concordar em `neff` dentro de ~4e-3, margem esperada do truncamento de
+domínio do FEM).
+
+```bash
+pip install pytest
+pytest
+```
+
+O FEM usa autovalor denso (`scipy.linalg.eigh`), então a suíte completa leva
+em torno de 1 minuto — a maior parte é gasta nos casos parametrizados de FEM.
 
 ## Dependências
 
