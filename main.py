@@ -7,7 +7,7 @@ import numpy as np
 
 from core.dispersion import sweep_wavelengths
 from core.models import Layer, Problem
-from core.postprocess import save_dispersion_plot, save_mode_plot
+from core.postprocess import confinement_factor, save_dispersion_plot, save_mode_plot
 from solvers import BaseSolver
 from solvers.fem import FEMSolver
 from solvers.tmm import TMMSolver
@@ -113,7 +113,11 @@ def main():
         print("Nenhum modo guiado encontrado para essa estrutura.")
     else:
         for result in results:
-            print(f"Modo {result.mode_index}: neff = {result.neff:.6f}, beta = {result.beta:.6e} rad/m")
+            gamma = confinement_factor(problem, result)
+            print(
+                f"Modo {result.mode_index}: neff = {result.neff:.6f}, beta = {result.beta:.6e} rad/m, "
+                f"Γ = {gamma:.4f} ({gamma * 100:.1f}%)"
+            )
 
         for path in save_mode_plot(problem, results, out_dir=out_dir):
             print(f"Perfil de campo salvo em: {path}")

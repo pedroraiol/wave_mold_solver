@@ -58,12 +58,16 @@ python main.py -c meu_config.json
 
 Se nenhum argumento for passado, o CLI entra em modo interativo, perguntando método, polarização e comprimento de onda (Enter mantém o valor do `config.json`).
 
-A saída lista os modos guiados encontrados:
+A saída lista os modos guiados encontrados, junto com o fator de confinamento
+(`Γ`, fração da potência do modo dentro do núcleo — ver `core/postprocess.py`,
+`confinement_factor`):
 
 ```
-Modo 0: neff = 3.176543, beta = 1.287654e+07 rad/m
+Modo 0: neff = 3.176543, beta = 1.287654e+07 rad/m, Γ = 0.8117 (81.2%)
 Perfil de campo salvo em: outputs/modes_TE_1550nm.png
 ```
+
+`Γ` também aparece na legenda do PNG do perfil de campo.
 
 ### Varredura de dispersão
 

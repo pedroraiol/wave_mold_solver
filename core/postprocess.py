@@ -10,6 +10,29 @@ from core.materials import boundary_kappa, boundary_slope_factor, coupling_facto
 from core.models import FieldProfile, ModeResult, Problem
 
 
+def confinement_factor(problem: Problem, result: ModeResult) -> float:
+    """Fração da potência do modo (integral de |campo|^2) dentro do núcleo.
+
+    "Núcleo" é a união de todas as camadas internas (finitas) do
+    empilhamento -- a mesma região sombreada como "core" em save_mode_plot --
+    não apenas a camada de maior índice, já que o modelo atual não distingue
+    papéis entre camadas internas.
+    """
+    field = result.field
+    if field is None:
+        raise ValueError("ModeResult sem field: rode o solver antes de calcular o confinamento")
+
+    inner = problem.layers[1:-1]
+    total_inner = sum(layer.thickness_nm for layer in inner)
+
+    x = field.x_nm
+    intensity = field.amplitude**2
+    total_power = np.trapezoid(intensity, x)
+    core_mask = (x >= 0.0) & (x <= total_inner)
+    core_power = np.trapezoid(intensity[core_mask], x[core_mask])
+    return core_power / total_power
+
+
 def reconstruct_field(problem: Problem, neff: float, points_per_layer: int = 200) -> FieldProfile:
     layers = problem.layers
     inner = layers[1:-1]
@@ -83,10 +106,11 @@ def save_mode_plot(problem: Problem, results: list[ModeResult], out_dir: str = "
     for result in results:
         if result.field is None:
             continue
+        gamma = confinement_factor(problem, result)
         ax.plot(
             result.field.x_nm,
             result.field.amplitude,
-            label=f"Modo {result.mode_index} (neff={result.neff:.4f})",
+            label=f"Modo {result.mode_index} (neff={result.neff:.4f}, Γ={gamma:.2f})",
         )
 
     ax.set_xlabel("x (nm)")
